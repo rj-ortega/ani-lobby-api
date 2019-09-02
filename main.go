@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
 
 const DBName = "ani_lobby"
-const connection = "host=127.0.0.1 port=5432 user=Rj dbname=ani_lobby sslmode=disable"
+const localConnection = "host=127.0.0.1 port=5432 user=Rj dbname=ani_lobby sslmode=disable"
 
 // Anime model
 type Anime struct {
@@ -20,7 +22,11 @@ type Anime struct {
 
 func addDB() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		db, err := gorm.Open("postgres", connection)
+		dbURL := os.Getenv("DATABASE_URL")
+		if dbURL == "" {
+			dbURL = localConnection
+		}
+		db, err := gorm.Open("postgres", dbURL)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -32,6 +38,10 @@ func addDB() gin.HandlerFunc {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	r := gin.Default()
 	r.Use(addDB())
 	r.GET("/users", getAllUsers)
@@ -39,5 +49,5 @@ func main() {
 	// r.POST("/users", getAllUsers)
 	// r.DELETE("/users", getAllUsers)
 	// r.PATCH("/users", getAllUsers)
-	r.Run() // listen and serve on 0.0.0.0:8080
+	r.Run(fmt.Sprintf(":%s", port)) // listen and serve on 0.0.0.0:8080
 }
