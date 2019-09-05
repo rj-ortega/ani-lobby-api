@@ -9,16 +9,9 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// DBName refers to name of database
 const DBName = "ani_lobby"
 const localConnection = "host=127.0.0.1 port=5432 user=Rj dbname=ani_lobby sslmode=disable"
-
-// Anime model
-type Anime struct {
-	Name           string   `json:"name"`
-	Genres         []string `json:"genres"`
-	MyAnimeListURL string   `json:"my_anime_list_url"`
-	Episodes       []string `json:"episodes"`
-}
 
 func addDB() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -28,11 +21,12 @@ func addDB() gin.HandlerFunc {
 		}
 		db, err := gorm.Open("postgres", dbURL)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.Set(DBName, db)
 		db.AutoMigrate(&User{})
+		db.AutoMigrate(&Anime{})
 		c.Next()
 	}
 }
@@ -44,10 +38,21 @@ func main() {
 	}
 	r := gin.Default()
 	r.Use(addDB())
-	r.GET("/users", getAllUsers)
-	r.GET("/users/:id", getUser)
-	// r.POST("/users", getAllUsers)
-	// r.DELETE("/users", getAllUsers)
-	// r.PATCH("/users", getAllUsers)
+	users := r.Group("/api/v1/users")
+	{
+		users.GET("", getAllUsers)
+		users.GET("/:id", getUser)
+		users.POST("", createUser)
+		users.DELETE("/:id", deleteUser)
+		users.PATCH("/:id", updateUser)
+	}
+	anime := r.Group("/api/v1/animes")
+	{
+		anime.GET("", getAllAnimes)
+		anime.GET("/:id", getAnime)
+		anime.POST("", createAnime)
+		// anime.DELETE("", deleteAnime)
+		// anime.PATCH("", updateAnime)
+	}
 	r.Run(fmt.Sprintf(":%s", port)) // listen and serve on 0.0.0.0:8080
 }
