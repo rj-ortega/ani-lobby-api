@@ -31,6 +31,10 @@ func getUser(c *gin.Context) {
 	db := c.MustGet(DBName).(*gorm.DB)
 	var user User
 	db.Where("id = ?", c.Param("id")).First(&user)
+	if id := user.ID; id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No user found"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": user,
 	})
@@ -50,6 +54,16 @@ func createUser(c *gin.Context) {
 	})
 }
 
+func deleteUser(c *gin.Context) {
+	db := c.MustGet(DBName).(*gorm.DB)
+	id := c.Param("id")
+	var user = User{ID: id}
+	db.Delete(&user)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "user deleted",
+	})
+}
+
 func updateUser(c *gin.Context) {
 	db := c.MustGet(DBName).(*gorm.DB)
 	var body User
@@ -63,15 +77,5 @@ func updateUser(c *gin.Context) {
 	db.Find(&result)
 	c.JSON(http.StatusOK, gin.H{
 		"message": result,
-	})
-}
-
-func deleteUser(c *gin.Context) {
-	db := c.MustGet(DBName).(*gorm.DB)
-	id := c.Param("id")
-	var user = User{ID: id}
-	db.Delete(&user)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "user deleted",
 	})
 }

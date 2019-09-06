@@ -16,7 +16,7 @@ type Anime struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
-	ImageURL  string    `jsong:"image_url"`
+	ImageURL  string    `json:"image_url"`
 	Score     float64   `json:"score"`
 	Episodes  uint      `json:"episodes"`
 	Synopsis  string    `json:"synopsis" gorm:"type:text"`
@@ -35,6 +35,10 @@ func getAnime(c *gin.Context) {
 	db := c.MustGet(DBName).(*gorm.DB)
 	var anime Anime
 	db.Where("id = ?", c.Param("id")).First(&anime)
+	if id := anime.ID; id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No anime found"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": anime,
 	})
@@ -42,34 +46,40 @@ func getAnime(c *gin.Context) {
 
 func createAnime(c *gin.Context) {
 	db := c.MustGet(DBName).(*gorm.DB)
-	var user User
-	if err := c.ShouldBind(&user); err != nil {
+	var anime Anime
+	if err := c.ShouldBind(&anime); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user.ID = uuid.New().String()
-	db.Create(&user)
+	anime.ID = uuid.New().String()
+	db.Create(&anime)
 	c.JSON(http.StatusOK, gin.H{
-		"message": user,
+		"message": anime,
 	})
 }
 
-// func updateAnime(c *gin.Context) {
-// 	db := c.MustGet(DBName).(*gorm.DB)
-// 	 := c.Query("")
-// 	var anime = Anime{}
-// 	db.Model(&anime).Update("", )
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": anime,
-// 	})
-// }
+func deleteAnime(c *gin.Context) {
+	db := c.MustGet(DBName).(*gorm.DB)
+	id := c.Param("id")
+	var anime = Anime{ID: id}
+	db.Delete(&anime)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Anime deleted",
+	})
+}
 
-// func deleteAnime(c *gin.Context) {
-// 	db := c.MustGet(DBName).(*gorm.DB)
-// 	id := c.Query("id")
-// 	var anime = Anime{ID: id}
-// 	db.Delete(&anime)
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": anime.Name + "deleted",
-// 	})
-// }
+func updateAnime(c *gin.Context) {
+	db := c.MustGet(DBName).(*gorm.DB)
+	var body Anime
+	if err := c.ShouldBind(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	id := c.Param("id")
+	db.Model(&Anime{}).Where("id = ?", id).Updates(body)
+	result := Anime{ID: id}
+	db.Find(&result)
+	c.JSON(http.StatusOK, gin.H{
+		"message": result,
+	})
+}

@@ -51,8 +51,8 @@ func main() {
 		anime.GET("", getAllAnimes)
 		anime.GET("/:id", getAnime)
 		anime.POST("", createAnime)
-		// anime.DELETE("", deleteAnime)
-		// anime.PATCH("", updateAnime)
+		anime.DELETE("/:id", deleteAnime)
+		anime.PATCH("/:id", updateAnime)
 	}
 	r.Run(fmt.Sprintf(":%s", port)) // listen and serve on 0.0.0.0:8080
 }
