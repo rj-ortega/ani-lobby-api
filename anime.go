@@ -2,25 +2,12 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
-
-// Anime model
-type Anime struct {
-	ID        string    `json:"id" gorm:"primary_key"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	ImageURL  string    `json:"image_url"`
-	Score     float64   `json:"score"`
-	Episodes  uint      `json:"episodes"`
-	Synopsis  string    `json:"synopsis" gorm:"type:text"`
-}
 
 func getAllAnimes(c *gin.Context) {
 	db := c.MustGet(DBName).(*gorm.DB)
@@ -51,7 +38,9 @@ func createAnime(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	anime.ID = uuid.New().String()
+	if animeID := anime.ID; animeID == "" {
+		animeID = uuid.New().String()
+	}
 	db.Create(&anime)
 	c.JSON(http.StatusOK, gin.H{
 		"message": anime,
