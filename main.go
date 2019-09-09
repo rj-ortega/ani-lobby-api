@@ -41,6 +41,7 @@ func main() {
 		port = "8080"
 	}
 	r := gin.Default()
+	r.Use(cors.Default())
 	r.Use(addDB())
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Welcome to Anime Lobby")
@@ -64,8 +65,5 @@ func main() {
 	}
 	r.GET("/api/v1/seasons", getSeasonalAnimes)
 	r.GET("api/v1/search", searchForAnime)
-	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
-	r.Use(cors.New(config))
 	r.Run(fmt.Sprintf(":%s", port))
 }
