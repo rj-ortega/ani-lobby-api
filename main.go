@@ -64,7 +64,8 @@ func main() {
 	}
 	r.GET("/api/v1/seasons", getSeasonalAnimes)
 	r.GET("api/v1/search", searchForAnime)
-
-	r.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	r.Use(cors.New(config))
 	r.Run(fmt.Sprintf(":%s", port))
 }
