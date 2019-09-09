@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -16,28 +16,6 @@ const localConnection = "host=127.0.0.1 port=5432 user=Rj dbname=ani_lobby sslmo
 
 // AnimeAPIURL is the url for the api supplying information
 const AnimeAPIURL = "https://api.jikan.moe/v3"
-
-// Anime model
-type Anime struct {
-	ID        string    `json:"id" gorm:"primary_key"`
-	MalID     int       `json:"mal_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Title     string    `json:"title"`
-	URL       string    `json:"url"`
-	ImageURL  string    `json:"image_url"`
-	Score     float64   `json:"score"`
-	Episodes  uint      `json:"episodes"`
-	Synopsis  string    `json:"synopsis" gorm:"type:text"`
-	Genres    []Genre   `json:"genres"`
-}
-
-// Genre is the genre information from season anime
-type Genre struct {
-	MalID int    `json:"mal_id"`
-	Name  string `json:"name"`
-	URL   string `json:"url"`
-}
 
 func addDB() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -74,6 +52,7 @@ func main() {
 		user.POST("", createUser)
 		user.DELETE("/:id", deleteUser)
 		user.PATCH("/:id", updateUser)
+		user.PATCH("/:id/anime/:anime_id", updateAnimeRelationship)
 	}
 	anime := r.Group("/api/v1/animes")
 	{
@@ -86,5 +65,6 @@ func main() {
 	r.GET("/api/v1/seasons", getSeasonalAnimes)
 	r.GET("api/v1/search", searchForAnime)
 
+	r.Use(cors.Default())
 	r.Run(fmt.Sprintf(":%s", port))
 }

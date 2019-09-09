@@ -16,6 +16,7 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Username  string    `json:"username"`
+	Animes    []*Anime  `gorm:"many2many:user_languages;"`
 }
 
 func getAllUsers(c *gin.Context) {
@@ -77,5 +78,22 @@ func updateUser(c *gin.Context) {
 	db.Find(&result)
 	c.JSON(http.StatusOK, gin.H{
 		"message": result,
+	})
+}
+
+func updateAnimeRelationship(c *gin.Context) {
+	db := c.MustGet(DBName).(*gorm.DB)
+	var user User
+	var anime Anime
+	user.ID = c.Param("id")
+	anime.ID = c.Param("anime_id")
+	db.Model(&user).Association("Anime").Find(&anime)
+	if anime.Title == "" {
+		// si la db no tiene el anime
+		// crea el anime con la informacion del body o del api??
+	}
+	db.Model(&user).Association("Anime").Append(anime)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "anime associated to user",
 	})
 }

@@ -2,12 +2,36 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
+
+// Anime model
+type Anime struct {
+	ID        string    `json:"id" gorm:"primary_key"`
+	MalID     int       `json:"mal_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Title     string    `json:"title"`
+	URL       string    `json:"url"`
+	ImageURL  string    `json:"image_url"`
+	Score     float64   `json:"score"`
+	Episodes  uint      `json:"episodes"`
+	Synopsis  string    `json:"synopsis" gorm:"type:text"`
+	Genres    []Genre   `json:"genres"`
+	Users     []*User   `gorm:"many2many:user_animes;"`
+}
+
+// Genre is the genre information from season anime
+type Genre struct {
+	MalID int    `json:"mal_id"`
+	Name  string `json:"name"`
+	URL   string `json:"url"`
+}
 
 func getAllAnimes(c *gin.Context) {
 	db := c.MustGet(DBName).(*gorm.DB)
