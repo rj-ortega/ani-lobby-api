@@ -13,6 +13,7 @@ import (
 // User model
 type User struct {
 	ID        string    `json:"id" gorm:"primary_key"`
+	UID       string    `json:"uid"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Username  string    `json:"username"`
