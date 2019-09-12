@@ -28,6 +28,7 @@ func addDB() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		defer db.Close()
 		c.Set(DBName, db)
 		db.AutoMigrate(&User{})
 		db.AutoMigrate(&Anime{})
